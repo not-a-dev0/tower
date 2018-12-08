@@ -51,10 +51,24 @@ interface Props extends WithStyles<typeof styles> {
     theme: Theme;
 }
 
-class Login extends React.Component<Props, object> {
+interface LoginState {
+    email: string;
+    password: string;
+}
+
+class Login extends React.Component<Props, LoginState> {
+    constructor(props: Props) {
+      super(props);
+
+      this.state = {
+        email: '',
+        password: '',
+      };
+    }
 
     public render() {
         const { classes } = this.props;
+        const { email, password } = this.state;
 
         return (
             <main className={classes.main}>
@@ -69,18 +83,29 @@ class Login extends React.Component<Props, object> {
                     <form className={classes.form}>
                         <FormControl margin="normal" required fullWidth>
                             <InputLabel htmlFor="email">Email Address</InputLabel>
-                            <Input id="email" name="email" autoComplete="email" autoFocus />
+                            <Input
+                                id="email"
+                                name="email"
+                                value={email}
+                                onChange={this.handleChangeEmail}
+                                autoComplete="email"
+                                autoFocus
+                            />
                         </FormControl>
                         <FormControl margin="normal" required fullWidth>
                             <InputLabel htmlFor="password">Password</InputLabel>
-                            <Input name="password" type="password" id="password" autoComplete="current-password" />
+                            <Input
+                                name="password"
+                                type="password"
+                                value={password}
+                                onChange={this.handleChangePassword}
+                                id="password"
+                                autoComplete="current-password"
+                            />
                         </FormControl>
-                        <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
-                            label="Remember me"
-                        />
                         <Button
-                            type="submit"
+                            type="button"
+                            onClick={this.signIn}
                             fullWidth
                             variant="contained"
                             color="primary"
@@ -93,6 +118,37 @@ class Login extends React.Component<Props, object> {
             </main>
         );
     }
+
+    private handleChangeEmail = (e: any) => {
+        this.setState({
+          email: e.target.value,
+        });
+    };
+
+    private handleChangePassword = (e: any) => {
+        this.setState({
+          password: e.target.value,
+        });
+    };
+
+    private signIn = () => {
+        const { email, password } = this.state;
+
+        fetch(`http://www.app.local/api/v2/barong/identity/sessions`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        }).then(data => {
+            if (data.status === 200) {
+                window.location.replace('/tower');
+            }
+        }).catch(err => {
+            console.error(err);
+        });
+    };
 }
 
 export default withStyles(styles, { withTheme: true })(Login);
